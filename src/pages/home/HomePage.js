@@ -3,9 +3,18 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../../firebase";
 import PageWrapper from "../../components/page-wrapper/PageWrapper";
 import './HomePage.css';
+import { useEffect } from "react";
+import { useAuth } from "../../AuthContexts";
 
 export default function Home() {
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (user) {
+            navigate("/choose-activity-type", { replace: true });
+        }
+    }, [user, navigate]);
 
     const handleLogin = async () => {
         try {
