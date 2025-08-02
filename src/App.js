@@ -2,7 +2,9 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { AnimatePresence } from "framer-motion";
 import HomePage from "./pages/home/HomePage";
 import ChooseActivityTypePage from "./pages/choose-activity-type/ChooseActivityTypePage";
+import PrivateRoute from "./PrivateRoute.js";
 import { useEffect } from "react";
+import { AuthProvider } from "./AuthContexts.js";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -15,7 +17,10 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/choose-activity-type" element={<ChooseActivityTypePage />} />
+        <Route path="/choose-activity-type" element={
+          <PrivateRoute>
+            <ChooseActivityTypePage />
+          </PrivateRoute>} />
       </Routes>
     </AnimatePresence>
   );
@@ -24,7 +29,9 @@ function AnimatedRoutes() {
 function App() {
   return (
     <Router>
-      <AnimatedRoutes />
+      <AuthProvider>
+        <AnimatedRoutes />
+      </AuthProvider>
     </Router>
   );
 }

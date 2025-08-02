@@ -1,9 +1,20 @@
 import { useNavigate } from "react-router-dom";
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "../../firebase";
 import PageWrapper from "../../components/page-wrapper/PageWrapper";
 import './HomePage.css';
 
 export default function Home() {
     const navigate = useNavigate();
+
+    const handleLogin = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+            navigate("/choose-activity-type");
+        } catch (error) {
+            console.error("Erro no login", error);
+        }
+    };
 
     return (
         <PageWrapper>
@@ -25,7 +36,7 @@ export default function Home() {
                     <div class="p-8 bg-white flex flex-col justify-center">
                         <h2 class="text-2xl font-semibold text-center mb-6">Log in or sign up</h2>
 
-                        <button onClick={() => navigate("/choose-activity-type")} class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md flex items-center justify-center gap-2 transition duration-200">
+                        <button onClick={handleLogin} class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md flex items-center justify-center gap-2 transition duration-200">
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5" />
                             Continue with Google
                         </button>
