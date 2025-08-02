@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 
 export default function EditProfile() {
     const [nativeLanguages, setNativeLanguages] = useState([]);
+    const [name, setName] = useState("");
+    const [nativeLanguage, setNativeLanguage] = useState("");
+    const [level, setLevel] = useState("");
 
     useEffect(() => {
         const fetchNativeLanguages = async () => {
@@ -20,6 +23,17 @@ export default function EditProfile() {
         fetchNativeLanguages();
     }, []);
 
+    const isFormValid = name && nativeLanguage && level;
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Lógica para salvar os dados
+        console.log("Formulário enviado com sucesso!");
+        console.log("Nome:", name);
+        console.log("Idioma Nativo:", nativeLanguage);
+        console.log("Nível:", level);
+    };
+
     return (
         <PageWrapper>
             <div className="bg-gradient-to-br from-purple-700 via-purple-800 to-indigo-900 min-h-screen text-white">
@@ -34,16 +48,17 @@ export default function EditProfile() {
 
                         <form id="profileForm" className="space-y-5">
                             <div>
-                                <label for="name" className="block font-medium mb-1">Your name</label>
-                                <input type="text" id="name" name="name" required
+                                <label className="block font-medium mb-1">Your name</label>
+                                <input type="text" id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required
                                     className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 outline-none" />
                             </div>
 
                             <div>
-                                <label for="language" className="block font-medium mb-1">Native language</label>
+                                <label className="block font-medium mb-1">Native language</label>
                                 <select
                                     id="nativeLanguage"
-                                    name="nativeLanguage"
+                                    value={nativeLanguage}
+                                    onChange={(e) => setNativeLanguage(e.target.value)}
                                     required
                                     className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:ring-2 focus:ring-purple-500 outline-none"
                                 >
@@ -57,8 +72,8 @@ export default function EditProfile() {
                             </div>
 
                             <div>
-                                <label for="level" className="block font-medium mb-1">Choose your english level</label>
-                                <select id="level" name="level" required
+                                <label className="block font-medium mb-1">Choose your english level</label>
+                                <select id="level" value={level} onChange={(e) => setLevel(e.target.value)} required
                                     className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:ring-2 focus:ring-purple-500 outline-none">
                                     <option value=""></option>
                                     <option value="BEGINNER">Beginner</option>
@@ -68,7 +83,11 @@ export default function EditProfile() {
                             </div>
 
                             <button type="submit"
-                                className="w-full bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-md font-medium transition">
+                                disabled={!isFormValid}
+                                className={`w-full bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-md font-medium transition ${isFormValid
+                                    ? "bg-purple-700 hover:bg-purple-800"
+                                    : "bg-gray-400 cursor-not-allowed"
+                                    }`}>
                                 Save
                             </button>
                         </form>
