@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { AnimatePresence } from "framer-motion";
 import HomePage from "./pages/home/HomePage";
 import ChooseActivityTypePage from "./pages/choose-activity-type/ChooseActivityTypePage";
+import EditProfile from "./pages/edit-profile/EditProfile";
 import PrivateRoute from "./PrivateRoute.js";
 import { useEffect } from "react";
 import { AuthProvider } from "./AuthContexts.js";
@@ -20,6 +21,10 @@ function AnimatedRoutes() {
         <Route path="/choose-activity-type" element={
           <PrivateRoute>
             <ChooseActivityTypePage />
+          </PrivateRoute>} />
+        <Route path="/edit-profile" element={
+          <PrivateRoute>
+            <EditProfile />
           </PrivateRoute>} />
       </Routes>
     </AnimatePresence>
