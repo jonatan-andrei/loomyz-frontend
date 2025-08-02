@@ -23,9 +23,12 @@ export default function EditProfile() {
         fetchNativeLanguages();
     }, []);
 
-    const isFormValid = name && nativeLanguage && level;
+    const isFormValid = String(name).trim().length > 0 &&
+        String(nativeLanguage).trim().length > 0 &&
+        String(level).trim().length > 0;
 
     const handleSubmit = (e) => {
+        console.log(isFormValid)
         e.preventDefault();
         // Lógica para salvar os dados
         console.log("Formulário enviado com sucesso!");
@@ -46,7 +49,7 @@ export default function EditProfile() {
                     <div className="bg-white text-gray-900 rounded-xl shadow-xl p-8 w-full max-w-md">
                         <h1 className="text-2xl font-bold mb-6 text-center">Your Profile</h1>
 
-                        <form id="profileForm" className="space-y-5">
+                        <form id="profileForm" className="space-y-5" onSubmit={handleSubmit}>
                             <div>
                                 <label className="block font-medium mb-1">Your name</label>
                                 <input type="text" id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required
@@ -62,7 +65,7 @@ export default function EditProfile() {
                                     required
                                     className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:ring-2 focus:ring-purple-500 outline-none"
                                 >
-                                    <option value=""></option>
+                                    <option disabled value=""></option>
                                     {nativeLanguages && nativeLanguages.nativeLanguages && nativeLanguages.nativeLanguages.map((nl) => (
                                         <option key={nl.nativeLanguageId} value={nl.nativeLanguageId}>
                                             {nl.displayName}
@@ -75,7 +78,7 @@ export default function EditProfile() {
                                 <label className="block font-medium mb-1">Choose your english level</label>
                                 <select id="level" value={level} onChange={(e) => setLevel(e.target.value)} required
                                     className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:ring-2 focus:ring-purple-500 outline-none">
-                                    <option value=""></option>
+                                    <option disabled value=""></option>
                                     <option value="BEGINNER">Beginner</option>
                                     <option value="INTERMEDIATE">Intermediate</option>
                                     <option value="ADVANCED">Advanced</option>
@@ -84,7 +87,7 @@ export default function EditProfile() {
 
                             <button type="submit"
                                 disabled={!isFormValid}
-                                className={`w-full bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-md font-medium transition ${isFormValid
+                                className={`w-full text-white px-4 py-2 rounded-md font-medium transition ${isFormValid
                                     ? "bg-purple-700 hover:bg-purple-800"
                                     : "bg-gray-400 cursor-not-allowed"
                                     }`}>
