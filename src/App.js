@@ -6,6 +6,7 @@ import EditProfile from "./pages/edit-profile/EditProfile";
 import PrivateRoute from "./PrivateRoute.js";
 import { useEffect } from "react";
 import { AuthProvider } from "./AuthContexts.js";
+import { Toaster } from 'react-hot-toast';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -16,6 +17,7 @@ function AnimatedRoutes() {
 
   return (
     <AnimatePresence mode="wait">
+      <Toaster />
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
         <Route path="/choose-activity-type" element={

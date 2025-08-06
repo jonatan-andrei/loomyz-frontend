@@ -5,6 +5,7 @@ import PageWrapper from "../../components/page-wrapper/PageWrapper";
 import './HomePage.css';
 import { useEffect } from "react";
 import { useAuth } from "../../AuthContexts";
+import { verifyExistsPendingRegistration } from "../../services/httpService";
 
 export default function Home() {
     const navigate = useNavigate();
@@ -12,16 +13,31 @@ export default function Home() {
 
     useEffect(() => {
         if (user) {
-            navigate("/choose-activity-type", { replace: true });
+            setRedirection();
         }
     }, [user, navigate]);
 
     const handleLogin = async () => {
         try {
             await signInWithPopup(auth, provider);
-            navigate("/choose-activity-type");
+            setRedirection();
         } catch (error) {
             console.error("Erro no login", error);
+        }
+    };
+
+    const setRedirection = async () => {
+        try {
+            const user = auth.currentUser;
+            const existsPendingRegistration = await verifyExistsPendingRegistration(user);
+            if (existsPendingRegistration) {
+                navigate("/edit-profile");
+            } else {
+                navigate("/choose-activity-type");
+            }
+        } catch (error) {
+            console.error("Failed to load exists pending registration: ", error);
+            navigate("/");
         }
     };
 
