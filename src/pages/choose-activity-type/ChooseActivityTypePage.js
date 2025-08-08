@@ -24,7 +24,7 @@ export default function ChooseActivityTypePage() {
       }
     };
     fetchCountForReview();
-  }, []);
+  }, [user, navigate]);
 
   return (
     <PageWrapper>

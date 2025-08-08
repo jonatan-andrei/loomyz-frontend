@@ -38,7 +38,7 @@ export async function verifyExistsPendingRegistration(user) {
 
 export async function getReviewCount(user) {
     const idToken = await user.getIdToken();
-    const response = await fetch("http://localhost:8099/flashcard/count-for-review", {
+    const response = await fetch("http://localhost:8099/activity/count-for-review", {
         method: "GET",
         headers: {
             Authorization: `Bearer ${idToken}`,
