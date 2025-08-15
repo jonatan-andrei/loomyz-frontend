@@ -36,21 +36,12 @@ export default function ChooseActivityTypePage() {
   };
 
   const handleSelectOption = (option) => {
-    console.log("Iniciando:", selectedActivity.key, option.key);
+    navigate("/completed-activity/" + option.key);
     setModalOpen(false);
   };
 
   return (
     <PageWrapper>
-      <div className="bg-gradient-to-br from-purple-700 via-purple-800 to-indigo-900 text-white min-h-screen flex flex-col">
-        <header className="p-4">
-          <a
-            href="/choose-activity-type"
-            className="text-xl font-bold text-white hover:text-yellow-300 transition"
-          >
-            Loomyz
-          </a>
-        </header>
 
         <main className="flex items-center justify-center px-4 py-10">
           <div className="bg-white text-gray-900 rounded-xl shadow-xl p-8 w-full max-w-md">
@@ -60,7 +51,9 @@ export default function ChooseActivityTypePage() {
 
             <div className="space-y-4">
               {!!countForReview && (
-                <button className="w-full flex items-center gap-4 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-lg transition">
+                <button 
+                onClick={() => navigate("/activity/review")}
+                className="w-full flex items-center gap-4 bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-lg transition">
                   <RefreshCcw className="w-5 h-5 mt-1" />
                   <div className="text-left leading-tight">
                     <span className="block font-medium text-base">Review</span>
@@ -109,7 +102,6 @@ export default function ChooseActivityTypePage() {
           options={selectedActivity ? ACTIVITY_OPTIONS[selectedActivity.key] : []}
           onSelect={handleSelectOption}
         />
-      </div>
     </PageWrapper>
   );
 }

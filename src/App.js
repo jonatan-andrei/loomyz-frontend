@@ -3,6 +3,8 @@ import { AnimatePresence } from "framer-motion";
 import HomePage from "./pages/home/HomePage";
 import ChooseActivityTypePage from "./pages/choose-activity-type/ChooseActivityTypePage";
 import EditProfile from "./pages/edit-profile/EditProfile";
+import ActivityPage from "./pages/activity/ActivityPage";
+import CompletedActivity from "./pages/completed-activity/CompletedActivity";
 import PrivateRoute from "./PrivateRoute.js";
 import { useEffect } from "react";
 import { AuthProvider } from "./AuthContexts.js";
@@ -27,6 +29,14 @@ function AnimatedRoutes() {
         <Route path="/edit-profile" element={
           <PrivateRoute>
             <EditProfile />
+          </PrivateRoute>} />
+        <Route path="/activity/:type" element={
+          <PrivateRoute>
+            <ActivityPage />
+          </PrivateRoute>} />
+        <Route path="/completed-activity/:type" element={
+          <PrivateRoute>
+            <CompletedActivity />
           </PrivateRoute>} />
       </Routes>
     </AnimatePresence>

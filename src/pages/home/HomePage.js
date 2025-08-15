@@ -42,7 +42,6 @@ export default function Home() {
     };
 
     return (
-        <PageWrapper>
             <div className="bg-gradient-to-br from-purple-700 via-purple-800 to-indigo-900 text-white min-h-screen flex items-center justify-center px-4 principal">
 
                 <div className="bg-white text-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden grid grid-cols-1 md:grid-cols-2">
@@ -70,6 +69,5 @@ export default function Home() {
                 </div>
 
             </div>
-        </PageWrapper>
     );
 }

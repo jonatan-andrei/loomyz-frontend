@@ -46,3 +46,14 @@ export async function getReviewCount(user) {
     });
     return response.json();
 }
+
+export async function countFlashcardsViewedToday(user) {
+    const idToken = await user.getIdToken();
+    const response = await fetch("http://localhost:8099/activity/count-viewed-today", {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
+    return response.json();
+}
