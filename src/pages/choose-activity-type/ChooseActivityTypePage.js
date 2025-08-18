@@ -36,7 +36,7 @@ export default function ChooseActivityTypePage() {
   };
 
   const handleSelectOption = (option) => {
-    navigate("/completed-activity/" + option.key);
+    navigate("/activity/" + option.key);
     setModalOpen(false);
   };
 

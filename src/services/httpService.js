@@ -57,3 +57,34 @@ export async function countFlashcardsViewedToday(user) {
     });
     return response.json();
 }
+
+export async function getActivities(user, activityType) {
+    const idToken = await user.getIdToken();
+    const response = await fetch("http://localhost:8099/activity/" + activityType, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
+    return response.json();
+}
+
+export async function saveFlashcard(user, activityId, payload) {
+    const idToken = await user.getIdToken();
+
+    const response = await fetch("http://localhost:8099/activity/save-flashcard/" + activityId, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error saving flashcard: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+

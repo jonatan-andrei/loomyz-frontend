@@ -45,7 +45,7 @@ export default function CompletedActivity() {
             <Confetti duration={3500} />
             <main className="flex items-center justify-center px-4 py-10">
                 <div className="bg-white text-gray-900 rounded-xl shadow-xl p-8 w-full max-w-md">
-                    <div class="text-center mb-6 space-y-4">
+                    <div className="text-center mb-6 space-y-4">
                         <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">Congratulations!</h1>
                         {(quantityLearned !== 0 && quantityReviewed !== 0) && (
                             <p id="summaryText" className="text-lg md:text-xl font-medium text-gray-800">
@@ -65,7 +65,7 @@ export default function CompletedActivity() {
                             </p>
                         )}
                     </div>
-                    <div class="flex flex-col gap-3 w-full max-w-sm">
+                    <div className="flex flex-col gap-3 w-full max-w-sm">
                         {!(countForReview === 0 && type === "review") && (
                             <><button id="continueBtn"
                                 onClick={() => navigate(`/activity/${type}`)}
