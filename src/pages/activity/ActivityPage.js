@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContexts";
 import { useNavigate } from "react-router-dom";
-import { getActivities, saveFlashcard } from "../../services/httpService";
+import { getActivities, saveFlashcard, validateTextActivity } from "../../services/httpService";
 import LoadingPage from "../../components/loading-page/LoadingPage";
 
 export default function CompletedActivity() {
@@ -11,6 +11,9 @@ export default function CompletedActivity() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showAnswer, setShowAnswer] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [userAnswer, setUserAnswer] = useState("");
+    const [isCorrect, setIsCorrect] = useState(null);
+    const [validating, setValidating] = useState(false);
     const { type } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -40,6 +43,24 @@ export default function CompletedActivity() {
         setShowAnswer(true);
     };
 
+    const handleValidateText = async (activity, answer) => {
+        const payload = {
+            activityType: activity.activityType,
+            correctAnswer: activity.translation,
+            answer: answer
+        };
+        setValidating(true);
+        try {
+            const result = await validateTextActivity(user, payload);
+            setIsCorrect(result);
+            setShowAnswer(true);
+        } catch (error) {
+            console.error("Failed to validate translation: ", error);
+        } finally {
+            setValidating(false);
+        }
+    };
+
     const handleNext = (activity, option) => {
         const payload = {
             flashcardId: activity.flashcardId,
@@ -51,8 +72,10 @@ export default function CompletedActivity() {
         };
 
         if (currentIndex < activities.length - 1) {
-            setCurrentIndex((prev) => prev + 1)
+            setCurrentIndex((prev) => prev + 1);
             setShowAnswer(false);
+            setUserAnswer("");
+            setIsCorrect(null);
         } else {
             navigate("/completed-activity/" + type);
         }
@@ -82,7 +105,7 @@ export default function CompletedActivity() {
                         </button>
                     </div>
 
-                    {!showAnswer && (
+                    {!showAnswer && activity.activityType === 'READING' && (
                         <button
                             onClick={handleReveal}
                             className="bg-purple-700 hover:bg-purple-800 text-white px-5 py-2 rounded-md transition font-medium"
@@ -91,14 +114,50 @@ export default function CompletedActivity() {
                         </button>
                     )}
 
+                    {!showAnswer && activity.activityType === 'TRANSLATING_TEXT' && (
+                        <div className="flex flex-col items-center gap-3">
+                            <input
+                                type="text"
+                                value={userAnswer}
+                                onChange={(e) => setUserAnswer(e.target.value)}
+                                placeholder="Type your translation..."
+                                className="border border-gray-300 rounded-md px-4 py-2 w-full max-w-md"
+                            />
+                            <button
+                                disabled={!userAnswer || validating}
+                                onClick={() => handleValidateText(activity, userAnswer)}
+                                className="px-5 py-2 rounded-md font-medium transition 
+                                bg-purple-700 hover:bg-purple-800 text-white 
+                                disabled:bg-purple-400 disabled:cursor-not-allowed disabled:hover:bg-purple-400"
+                            >
+                                {validating ? "Validating..." : "Validate Translation"}
+                            </button>
+                        </div>
+                    )}
+
                     {showAnswer && (
                         <div className="mt-6">
-                            <p className="text-lg font-medium mb-4 text-green-700">
-                                {activity.translation}
-                            </p>
+                            {activity.activityType === "TRANSLATING_TEXT" && (
+                                <>
+                                    {isCorrect ? (
+                                        <div className="p-3 rounded-md bg-green-100 text-green-700 font-medium mb-4">
+                                            ✅ Correct! Your answer: <span className="font-semibold">{userAnswer}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 rounded-md bg-red-100 text-red-700 font-medium mb-4">
+                                            ❌ Incorrect. Correct translation: <span className="font-semibold">{activity.translation}</span>
+                                        </div>
+                                    )}
+                                </>
+                            )}
 
-                            <div className="flex flex-col md:flex-row gap-3 justify-center">
+                            {activity.activityType === "READING" && (
+                                <p className="text-lg font-medium mb-4 text-green-700">
+                                    {activity.translation}
+                                </p>
+                            )}
 
+                            <div className="flex flex-col md:flex-row gap-3 justify-center mt-8">
                                 {activity.options.map((option, index) => (
                                     <button
                                         key={index}
