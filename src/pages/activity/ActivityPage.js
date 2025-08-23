@@ -12,7 +12,7 @@ export default function CompletedActivity() {
     const [showAnswer, setShowAnswer] = useState(false);
     const [loading, setLoading] = useState(true);
     const [userAnswer, setUserAnswer] = useState("");
-    const [isCorrect, setIsCorrect] = useState(null);
+    const [isCorrect, setIsCorrect] = useState(false);
     const [validating, setValidating] = useState(false);
     const { type } = useParams();
     const navigate = useNavigate();
@@ -74,7 +74,7 @@ export default function CompletedActivity() {
             setCurrentIndex((prev) => prev + 1);
             setShowAnswer(false);
             setUserAnswer("");
-            setIsCorrect(null);
+            setIsCorrect(false);
         } else {
             navigate("/completed-activity/" + type);
         }
@@ -175,7 +175,9 @@ export default function CompletedActivity() {
                             )}
 
                             <div className="flex flex-col md:flex-row gap-3 justify-center mt-8">
-                                {activity.options.map((option, index) => (
+                                {activity.options
+                                .filter(option => !(isCorrect && option.responseType === "INCORRECT"))
+                                .map((option, index) => (
                                     <button
                                         key={index}
                                         onClick={() => handleNext(activity, option)}
@@ -188,7 +190,7 @@ export default function CompletedActivity() {
                                                     : option.responseType === "VERY_EASY"
                                                         ? "bg-blue-400 hover:bg-blue-500"
                                                         : "bg-gray-400 hover:bg-gray-500"
-                                            } text-white px-4 py-2 rounded-md flex flex-col items-center md:flex-1 md:max-w-[150px]`}
+                                            } text-white px-4 py-2 rounded-md flex flex-col items-center md:flex-1 md:max-w-[160px]`}
                                     >
                                         <span className="text-base font-semibold">{option.description}</span>
                                         <span className="text-sm">{option.intervalDescription}</span>
