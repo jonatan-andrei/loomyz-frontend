@@ -46,12 +46,11 @@ export default function CompletedActivity() {
     const handleValidateText = async (activity, answer) => {
         const payload = {
             activityType: activity.activityType,
-            correctAnswer: activity.translation,
             answer: answer
         };
         setValidating(true);
         try {
-            const result = await validateTextActivity(user, payload);
+            const result = await validateTextActivity(user, activity.activityId, payload);
             setIsCorrect(result);
             setShowAnswer(true);
         } catch (error) {
@@ -96,16 +95,26 @@ export default function CompletedActivity() {
             <main className="flex flex-col items-center justify-center px-4 py-10">
                 <div className="bg-white text-gray-900 rounded-xl shadow-lg p-6 max-w-3xl w-full text-center">
                     <div className="flex items-center justify-center gap-3 mb-6">
-                        <p className="text-xl font-semibold">{activity?.text}</p>
-                        <button
-                            onClick={() => playAudio(activity.text)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full transition"
-                        >
-                            🔊
-                        </button>
+                        {['READING', 'TRANSLATING_TEXT'].includes(activity.activityType) &&
+                            <p className="text-xl font-semibold">{activity?.text}</p>
+                        }
+                        {['LISTENING', 'TRANSLATING_AUDIO'].includes(activity.activityType) && showAnswer &&
+                            <p className="text-xl font-semibold">{activity?.text}</p>
+                        }
+                        {['WRITING'].includes(activity.activityType) &&
+                            <p className="text-xl font-semibold">{activity?.translation}</p>
+                        }
+                        {['READING', 'TRANSLATING_TEXT', 'LISTENING', 'TRANSLATING_AUDIO', 'TRANSCRIBING'].includes(activity.activityType) &&
+                            <button
+                                onClick={() => playAudio(activity?.text)}
+                                className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full transition"
+                            >
+                                🔊
+                            </button>
+                        }
                     </div>
 
-                    {!showAnswer && activity.activityType === 'READING' && (
+                    {!showAnswer && ['READING', 'LISTENING'].includes(activity.activityType) && (
                         <button
                             onClick={handleReveal}
                             className="bg-purple-700 hover:bg-purple-800 text-white px-5 py-2 rounded-md transition font-medium"
@@ -114,30 +123,36 @@ export default function CompletedActivity() {
                         </button>
                     )}
 
-                    {!showAnswer && activity.activityType === 'TRANSLATING_TEXT' && (
-                        <div className="flex flex-col items-center gap-3">
-                            <input
-                                type="text"
-                                value={userAnswer}
-                                onChange={(e) => setUserAnswer(e.target.value)}
-                                placeholder="Type your translation..."
-                                className="border border-gray-300 rounded-md px-4 py-2 w-full max-w-md"
-                            />
-                            <button
-                                disabled={!userAnswer || validating}
-                                onClick={() => handleValidateText(activity, userAnswer)}
-                                className="px-5 py-2 rounded-md font-medium transition 
+                    {!showAnswer &&
+                        ['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && (
+                            <div className="flex flex-col items-center gap-3">
+                                <input
+                                    type="text"
+                                    value={userAnswer}
+                                    onChange={(e) => setUserAnswer(e.target.value)}
+                                    placeholder={{
+                                        TRANSLATING_TEXT: "Type the translation in your language...",
+                                        TRANSLATING_AUDIO: "Type the translation in your language...",
+                                        WRITING: "Type the sentence in English...",
+                                        TRANSCRIBING: "Type the sentence in English..."
+                                    }[activity.activityType]}
+                                    className="border border-gray-300 rounded-md px-4 py-2 w-full max-w-md"
+                                />
+                                <button
+                                    disabled={!userAnswer || validating}
+                                    onClick={() => handleValidateText(activity, userAnswer)}
+                                    className="px-5 py-2 rounded-md font-medium transition 
                                 bg-purple-700 hover:bg-purple-800 text-white 
                                 disabled:bg-purple-400 disabled:cursor-not-allowed disabled:hover:bg-purple-400"
-                            >
-                                {validating ? "Validating..." : "Validate Translation"}
-                            </button>
-                        </div>
-                    )}
+                                >
+                                    {validating ? "Validating..." : "Validate"}
+                                </button>
+                            </div>
+                        )}
 
                     {showAnswer && (
                         <div className="mt-6">
-                            {activity.activityType === "TRANSLATING_TEXT" && (
+                            {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && (
                                 <>
                                     {isCorrect ? (
                                         <div className="p-3 rounded-md bg-green-100 text-green-700 font-medium mb-4">
@@ -145,13 +160,15 @@ export default function CompletedActivity() {
                                         </div>
                                     ) : (
                                         <div className="p-3 rounded-md bg-red-100 text-red-700 font-medium mb-4">
-                                            ❌ Incorrect. Correct translation: <span className="font-semibold">{activity.translation}</span>
+                                            ❌ Incorrect. Correct answer:<br />
+                                            {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO'].includes(activity.activityType) && <span className="font-semibold">{activity.translation}</span>}
+                                            {['WRITING', 'TRANSCRIBING'].includes(activity.activityType) && <span className="font-semibold">{activity.text}</span>}
                                         </div>
                                     )}
                                 </>
                             )}
 
-                            {activity.activityType === "READING" && (
+                            {['READING', 'LISTENING'].includes(activity.activityType) && (
                                 <p className="text-lg font-medium mb-4 text-green-700">
                                     {activity.translation}
                                 </p>
