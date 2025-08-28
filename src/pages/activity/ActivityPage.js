@@ -46,7 +46,10 @@ export default function CompletedActivity() {
     const handleValidateText = async (activity, answer) => {
         const payload = {
             activityType: activity.activityType,
-            answer: answer
+            answer: answer,
+            originalText: ['WRITING'].includes(activity.activityType)
+            ? activity.translation
+            : activity.text
         };
         setValidating(true);
         try {
@@ -154,17 +157,22 @@ export default function CompletedActivity() {
                         <div className="mt-6">
                             {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && (
                                 <>
-                                    {isCorrect ? (
-                                        <div className="p-3 rounded-md bg-green-100 text-green-700 font-medium mb-4">
-                                            ✅ Correct! Your answer: <span className="font-semibold">{userAnswer}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="p-3 rounded-md bg-red-100 text-red-700 font-medium mb-4">
-                                            ❌ Incorrect. Correct answer:<br />
-                                            {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO'].includes(activity.activityType) && <span className="font-semibold">{activity.translation}</span>}
-                                            {['WRITING', 'TRANSCRIBING'].includes(activity.activityType) && <span className="font-semibold">{activity.text}</span>}
-                                        </div>
-                                    )}
+                                    <div
+                                        className={`p-3 rounded-md mb-4 font-medium ${isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                            }`}
+                                    >
+                                        {isCorrect ? "✅ Correct!" : "❌ Incorrect."}
+                                    </div>
+
+                                    <div className="p-3 rounded-md bg-gray-100 text-gray-800 mb-3">
+                                        <span className="font-semibold">Your answer:</span> {userAnswer}
+                                    </div>
+
+                                    <div className="p-3 rounded-md bg-purple-50 text-purple-800">
+                                        <span className="font-semibold">Correct answer:</span>{" "}
+                                        {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO'].includes(activity.activityType) && activity.translation}
+                                        {['WRITING', 'TRANSCRIBING'].includes(activity.activityType) && activity.text}
+                                    </div>
                                 </>
                             )}
 
@@ -176,29 +184,30 @@ export default function CompletedActivity() {
 
                             <div className="flex flex-col md:flex-row gap-3 justify-center mt-8">
                                 {activity.options
-                                .filter(option => !(isCorrect && option.responseType === "INCORRECT"))
-                                .map((option, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => handleNext(activity, option)}
-                                        className={`${option.responseType === "INCORRECT"
-                                            ? "bg-red-500 hover:bg-red-600"
-                                            : option.responseType === "HARD"
-                                                ? "bg-yellow-400 hover:bg-yellow-500"
-                                                : option.responseType === "GOOD"
-                                                    ? "bg-green-600 hover:bg-green-700"
-                                                    : option.responseType === "VERY_EASY"
-                                                        ? "bg-blue-400 hover:bg-blue-500"
-                                                        : "bg-gray-400 hover:bg-gray-500"
-                                            } text-white px-4 py-2 rounded-md flex flex-col items-center md:flex-1 md:max-w-[160px]`}
-                                    >
-                                        <span className="text-base font-semibold">{option.description}</span>
-                                        <span className="text-sm">{option.intervalDescription}</span>
-                                    </button>
-                                ))}
+                                    .filter(option => !(isCorrect && option.responseType === "INCORRECT"))
+                                    .map((option, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => handleNext(activity, option)}
+                                            className={`${option.responseType === "INCORRECT"
+                                                ? "bg-red-500 hover:bg-red-600"
+                                                : option.responseType === "HARD"
+                                                    ? "bg-yellow-400 hover:bg-yellow-500"
+                                                    : option.responseType === "GOOD"
+                                                        ? "bg-green-600 hover:bg-green-700"
+                                                        : option.responseType === "VERY_EASY"
+                                                            ? "bg-blue-400 hover:bg-blue-500"
+                                                            : "bg-gray-400 hover:bg-gray-500"
+                                                } text-white px-4 py-2 rounded-md flex flex-col items-center md:flex-1 md:max-w-[160px]`}
+                                        >
+                                            <span className="text-base font-semibold">{option.description}</span>
+                                            <span className="text-sm">{option.intervalDescription}</span>
+                                        </button>
+                                    ))}
                             </div>
                         </div>
                     )}
+
                 </div>
             </main>
         </PageWrapper>
