@@ -3,8 +3,9 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContexts";
 import { useNavigate } from "react-router-dom";
-import { getActivities, saveFlashcard, validateTextActivity } from "../../services/httpService";
+import { getActivities, saveFlashcard, skipFlashcard, validateTextActivity } from "../../services/httpService";
 import LoadingPage from "../../components/loading-page/LoadingPage";
+import { toast } from "react-hot-toast";
 
 export default function CompletedActivity() {
     const [activities, setActivities] = useState([]);
@@ -13,10 +14,12 @@ export default function CompletedActivity() {
     const [loading, setLoading] = useState(true);
     const [userAnswer, setUserAnswer] = useState("");
     const [isCorrect, setIsCorrect] = useState(false);
+    const [isError, setIsError] = useState(false);
     const [validating, setValidating] = useState(false);
     const { type } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const [showSkipModal, setShowSkipModal] = useState(false);
 
     useEffect(() => {
         const fetchActivities = async () => {
@@ -48,31 +51,35 @@ export default function CompletedActivity() {
             activityType: activity.activityType,
             answer: answer,
             originalText: ['WRITING'].includes(activity.activityType)
-            ? activity.translation
-            : activity.text
+                ? activity.translation
+                : activity.text
         };
         setValidating(true);
         try {
             const result = await validateTextActivity(user, activity.activityId, payload);
+            setIsError(false);
             setIsCorrect(result);
-            setShowAnswer(true);
         } catch (error) {
             console.error("Failed to validate translation: ", error);
+            setIsError(true);
         } finally {
             setValidating(false);
+            setShowAnswer(true);
+        }
+    };
+
+    const handleSkipActivity = async () => {
+        setShowSkipModal(false);
+        try {
+            await skipFlashcard(user, activities[currentIndex].activityId);
+            handleNext(activities[currentIndex], null, true);
+        } catch (error) {
+            console.error("Failed to skip flashcard: ", error);
+            toast.error("Failed to skip activity. Please try again.");
         }
     };
 
     const handleNext = (activity, option) => {
-        const payload = {
-            flashcardId: activity.flashcardId,
-            activityType: activity.activityType,
-            response: option.responseType,
-            repetitionCount: option.repetitionCount,
-            intervalInDays: option.intervalInDays,
-            easinessFactor: option.easinessFactor
-        };
-
         if (currentIndex < activities.length - 1) {
             setCurrentIndex((prev) => prev + 1);
             setShowAnswer(false);
@@ -82,9 +89,19 @@ export default function CompletedActivity() {
             navigate("/completed-activity/" + type);
         }
 
-        saveFlashcard(user, activity.activityId, payload).catch((error) => {
-            console.error("Failed to update flashcard: ", error);
-        });
+        if (option) {
+            const payload = {
+                flashcardId: activity.flashcardId,
+                activityType: activity.activityType,
+                response: option.responseType,
+                repetitionCount: option.repetitionCount,
+                intervalInDays: option.intervalInDays,
+                easinessFactor: option.easinessFactor,
+            };
+            saveFlashcard(user, activity.activityId, payload).catch((error) => {
+                console.error("Failed to update flashcard: ", error);
+            });
+        }
     };
 
     if (loading) {
@@ -157,12 +174,14 @@ export default function CompletedActivity() {
                         <div className="mt-6">
                             {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && (
                                 <>
-                                    <div
-                                        className={`p-3 rounded-md mb-4 font-medium ${isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                            }`}
-                                    >
-                                        {isCorrect ? "✅ Correct!" : "❌ Incorrect."}
-                                    </div>
+                                    {!isError &&
+                                        <div
+                                            className={`p-3 rounded-md mb-4 font-medium ${isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                                }`}
+                                        >
+                                            {isCorrect ? "✅ Correct!" : "❌ Incorrect."}
+                                        </div>
+                                    }
 
                                     <div className="p-3 rounded-md bg-gray-100 text-gray-800 mb-3">
                                         <span className="font-semibold">Your answer:</span> {userAnswer}
@@ -188,7 +207,7 @@ export default function CompletedActivity() {
                                     .map((option, index) => (
                                         <button
                                             key={index}
-                                            onClick={() => handleNext(activity, option)}
+                                            onClick={() => handleNext(activity, option, false)}
                                             className={`${option.responseType === "INCORRECT"
                                                 ? "bg-red-500 hover:bg-red-600"
                                                 : option.responseType === "HARD"
@@ -204,6 +223,40 @@ export default function CompletedActivity() {
                                             <span className="text-sm">{option.intervalDescription}</span>
                                         </button>
                                     ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {type === "review" && !showAnswer && (
+                        <div className="flex justify-end mt-4">
+                            <button
+                                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                                onClick={() => setShowSkipModal(true)}
+                            >
+                                Skip this activity (review tomorrow)
+                            </button>
+                        </div>
+                    )}
+
+                    {showSkipModal && (
+                        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
+                            <div className="relative bg-white p-8 rounded-lg shadow-xl max-w-sm w-full">
+                                <h3 className="text-xl font-semibold mb-4 text-gray-900">Confirm Skip</h3>
+                                <p className="text-gray-700 mb-6">Are you sure you want to skip this activity?<br/> It will be reviewed tomorrow.</p>
+                                <div className="flex justify-end gap-3">
+                                    <button
+                                        onClick={() => setShowSkipModal(false)}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSkipActivity}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition"
+                                    >
+                                        Confirm Skip
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

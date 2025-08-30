@@ -49,8 +49,8 @@ export default function CompletedActivity() {
                         <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">Congratulations!</h1>
                         {(quantityLearned !== 0 && quantityReviewed !== 0) && (
                             <p id="summaryText" className="text-lg md:text-xl font-medium text-gray-800">
-                                You learned <span className="font-semibold text-purple-700">{quantityLearned}</span> sentences<br />
-                                and reviewed <span className="font-semibold text-purple-700">{quantityReviewed}</span> sentences
+                                You learned <span className="font-semibold text-purple-700">{quantityLearned}</span> {quantityLearned === 1 ? " sentence " : " sentences "}<br />
+                                and reviewed <span className="font-semibold text-purple-700">{quantityReviewed}</span> {quantityReviewed === 1 ? " sentence " : " sentences "}
                                 today!
                             </p>
                         )}

@@ -88,6 +88,24 @@ export async function saveFlashcard(user, activityId, payload) {
     return response.json();
 }
 
+export async function skipFlashcard(user, activityId) {
+    const idToken = await user.getIdToken();
+
+    const response = await fetch("http://localhost:8099/activity/skip-flashcard/" + activityId, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error skiping flashcard: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+
 export async function validateTextActivity(user, activityId, payload) {
     const idToken = await user.getIdToken();
 
