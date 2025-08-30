@@ -72,36 +72,39 @@ export default function CompletedActivity() {
         setShowSkipModal(false);
         try {
             await skipFlashcard(user, activities[currentIndex].activityId);
-            handleNext(activities[currentIndex], null, true);
+            handleNext(activities[currentIndex], null, false);
         } catch (error) {
             console.error("Failed to skip flashcard: ", error);
             toast.error("Failed to skip activity. Please try again.");
         }
     };
 
-    const handleNext = (activity, option) => {
-        if (currentIndex < activities.length - 1) {
-            setCurrentIndex((prev) => prev + 1);
-            setShowAnswer(false);
-            setUserAnswer("");
-            setIsCorrect(false);
-        } else {
-            navigate("/completed-activity/" + type);
-        }
+    const handleNext = (activity, option, isRetry) => {
+        if (!isRetry) {
+            if (currentIndex < activities.length - 1) {
+                setCurrentIndex((prev) => prev + 1);
+            } else {
+                navigate("/completed-activity/" + type);
+            }
 
-        if (option) {
-            const payload = {
-                flashcardId: activity.flashcardId,
-                activityType: activity.activityType,
-                response: option.responseType,
-                repetitionCount: option.repetitionCount,
-                intervalInDays: option.intervalInDays,
-                easinessFactor: option.easinessFactor,
-            };
-            saveFlashcard(user, activity.activityId, payload).catch((error) => {
-                console.error("Failed to update flashcard: ", error);
-            });
+            if (option) {
+                const payload = {
+                    flashcardId: activity.flashcardId,
+                    activityType: activity.activityType,
+                    response: option.responseType,
+                    repetitionCount: option.repetitionCount,
+                    intervalInDays: option.intervalInDays,
+                    easinessFactor: option.easinessFactor,
+                };
+                saveFlashcard(user, activity.activityId, payload).catch((error) => {
+                    console.error("Failed to update flashcard: ", error);
+                });
+            }
         }
+        setShowAnswer(false);
+        setUserAnswer("");
+        setIsCorrect(false);
+        setIsError(false);
     };
 
     if (loading) {
@@ -217,13 +220,24 @@ export default function CompletedActivity() {
                                                         : option.responseType === "VERY_EASY"
                                                             ? "bg-blue-400 hover:bg-blue-500"
                                                             : "bg-gray-400 hover:bg-gray-500"
-                                                } text-white px-4 py-2 rounded-md flex flex-col items-center md:flex-1 md:max-w-[160px]`}
+                                                } text-white px-4 py-2 rounded-md flex flex-col items-center md:flex-1 md:max-w-[165px] min-w-fit`}
                                         >
                                             <span className="text-base font-semibold">{option.description}</span>
                                             <span className="text-sm">{option.intervalDescription}</span>
                                         </button>
                                     ))}
                             </div>
+                        </div>
+                    )}
+
+                    {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && showAnswer && (
+                        <div className="flex justify-end mt-4">
+                            <button
+                                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                                onClick={() => handleNext(activity, null, true)}
+                            >
+                                Try again
+                            </button>
                         </div>
                     )}
 
@@ -242,7 +256,7 @@ export default function CompletedActivity() {
                         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
                             <div className="relative bg-white p-8 rounded-lg shadow-xl max-w-sm w-full">
                                 <h3 className="text-xl font-semibold mb-4 text-gray-900">Confirm Skip</h3>
-                                <p className="text-gray-700 mb-6">Are you sure you want to skip this activity?<br/> It will be reviewed tomorrow.</p>
+                                <p className="text-gray-700 mb-6">Are you sure you want to skip this activity?<br /> It will be reviewed tomorrow.</p>
                                 <div className="flex justify-end gap-3">
                                     <button
                                         onClick={() => setShowSkipModal(false)}
