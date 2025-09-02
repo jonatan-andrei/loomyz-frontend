@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { getActivities, saveFlashcard, skipFlashcard, validateTextActivity } from "../../services/httpService";
 import LoadingPage from "../../components/loading-page/LoadingPage";
 import { toast } from "react-hot-toast";
+import { Mic, Square } from 'lucide-react';
 
 export default function CompletedActivity() {
     const [activities, setActivities] = useState([]);
@@ -20,6 +21,8 @@ export default function CompletedActivity() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [showSkipModal, setShowSkipModal] = useState(false);
+    const [recognition, setRecognition] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
 
     useEffect(() => {
         const fetchActivities = async () => {
@@ -107,6 +110,69 @@ export default function CompletedActivity() {
         setIsError(false);
     };
 
+    const startSpeechRecognition = () => {
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                toast.error("Speech recognition not supported in this browser.");
+                return;
+            }
+
+            const recognitionInstance = new SpeechRecognition();
+            recognitionInstance.lang = "en-US";
+            recognitionInstance.continuous = true;
+            recognitionInstance.interimResults = true;
+            recognitionInstance.maxAlternatives = 1;
+
+            setRecognition(recognitionInstance);
+            setIsRecording(true);
+            setUserAnswer('');
+
+            let finalTranscript = '';
+
+            recognitionInstance.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+            };
+
+            recognitionInstance.onend = () => {
+                setIsRecording(false);
+                setValidating(true);
+                setUserAnswer(finalTranscript.trim());
+                handleValidateText(activity, finalTranscript.trim());
+            };
+
+            recognitionInstance.onerror = (err) => {
+                console.error("Speech recognition error:", err);
+                toast.error("Failed to capture audio. Please try again.");
+                setIsRecording(false);
+                setValidating(false);
+            };
+
+            recognitionInstance.start();
+
+        } catch (err) {
+            console.error(err);
+            toast.error("Speech recognition not available.");
+            setIsRecording(false);
+            setValidating(false);
+        }
+    };
+
+    const stopSpeechRecognition = () => {
+        if (recognition) {
+            recognition.stop();
+        }
+    };
+
     if (loading) {
         return <LoadingPage />;
     }
@@ -118,7 +184,7 @@ export default function CompletedActivity() {
             <main className="flex flex-col items-center justify-center px-4 py-10">
                 <div className="bg-white text-gray-900 rounded-xl shadow-lg p-6 max-w-3xl w-full text-center">
                     <div className="flex items-center justify-center gap-3 mb-6">
-                        {['READING', 'TRANSLATING_TEXT'].includes(activity.activityType) &&
+                        {['READING', 'TRANSLATING_TEXT', 'PRONUNCIATION'].includes(activity.activityType) &&
                             <p className="text-xl font-semibold">{activity?.text}</p>
                         }
                         {['LISTENING', 'TRANSLATING_AUDIO'].includes(activity.activityType) && showAnswer &&
@@ -173,9 +239,42 @@ export default function CompletedActivity() {
                             </div>
                         )}
 
+                    {!showAnswer &&
+                        ['PRONUNCIATION'].includes(activity.activityType) && (
+                            <div className="flex flex-col items-center gap-3">
+                                {!validating && (
+                                    <>
+                                        {!isRecording ? (
+                                            <button
+                                                onClick={startSpeechRecognition}
+                                                className="px-5 py-2 rounded-md font-medium transition bg-purple-700 hover:bg-purple-800 text-white flex items-center gap-2"
+                                            >
+                                                <Mic size={24} /> Start Pronunciation
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={stopSpeechRecognition}
+                                                className="px-5 py-2 rounded-md font-medium transition bg-red-500 hover:bg-red-600 text-white flex items-center gap-2"
+                                            >
+                                                <Square size={24} /> Stop
+                                            </button>
+                                        )}
+                                    </>
+                                )}
+
+                                {isRecording && (
+                                    <p className="text-sm text-gray-600">Recording... Speak now.</p>
+                                )}
+
+                                {validating && (
+                                    <p className="text-sm text-gray-600">Validating...</p>
+                                )}
+                            </div>
+                        )}
+
                     {showAnswer && (
                         <div className="mt-6">
-                            {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && (
+                            {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING', 'PRONUNCIATION'].includes(activity.activityType) && (
                                 <>
                                     {!isError &&
                                         <div
@@ -194,6 +293,14 @@ export default function CompletedActivity() {
                                         <span className="font-semibold">Correct answer:</span>{" "}
                                         {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO'].includes(activity.activityType) && activity.translation}
                                         {['WRITING', 'TRANSCRIBING'].includes(activity.activityType) && activity.text}
+                                        {['PRONUNCIATION'].includes(activity.activityType) &&
+                                            <button
+                                                onClick={() => playAudio(activity?.text)}
+                                                className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full transition"
+                                            >
+                                                🔊
+                                            </button>
+                                        }
                                     </div>
                                 </>
                             )}
@@ -230,7 +337,7 @@ export default function CompletedActivity() {
                         </div>
                     )}
 
-                    {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING'].includes(activity.activityType) && showAnswer && (
+                    {['TRANSLATING_TEXT', 'TRANSLATING_AUDIO', 'WRITING', 'TRANSCRIBING', 'PRONUNCIATION'].includes(activity.activityType) && showAnswer && (
                         <div className="flex justify-end mt-4">
                             <button
                                 className="text-sm text-gray-500 hover:text-gray-700 underline"
