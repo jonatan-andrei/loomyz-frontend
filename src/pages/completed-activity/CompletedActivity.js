@@ -56,12 +56,12 @@ export default function CompletedActivity() {
                         )}
                         {(quantityLearned !== 0 && quantityReviewed === 0) && (
                             <p id="summaryText" className="text-lg md:text-xl font-medium text-gray-800">
-                                You learned <span className="font-semibold text-purple-700">{quantityLearned}</span> sentences today!
+                                You learned <span className="font-semibold text-purple-700">{quantityLearned}</span> {quantityLearned === 1 ? " sentence " : " sentences "} today!
                             </p>
                         )}
                         {(quantityLearned === 0 && quantityReviewed !== 0) && (
                             <p id="summaryText" className="text-lg md:text-xl font-medium text-gray-800">
-                                You reviewed <span className="font-semibold text-purple-700">{quantityReviewed}</span> sentences today!
+                                You reviewed <span className="font-semibold text-purple-700">{quantityReviewed}</span> {quantityReviewed === 1 ? " sentence " : " sentences "} today!
                             </p>
                         )}
                     </div>

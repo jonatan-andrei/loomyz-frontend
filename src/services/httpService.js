@@ -106,10 +106,10 @@ export async function skipFlashcard(user, activityId) {
     return response.json();
 }
 
-export async function validateTextActivity(user, activityId, payload) {
+export async function validateActivity(user, activityId, payload) {
     const idToken = await user.getIdToken();
 
-    const response = await fetch("http://localhost:8099/activity/validate-text/" + activityId, {
+    const response = await fetch("http://localhost:8099/activity/validate/" + activityId, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
