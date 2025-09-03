@@ -43,65 +43,65 @@ export default function ChooseActivityTypePage() {
   return (
     <PageWrapper>
 
-        <main className="flex items-center justify-center px-4 py-10">
-          <div className="bg-white text-gray-900 rounded-xl shadow-xl p-8 w-full max-w-md">
-            <h1 className="text-2xl font-bold mb-6 text-center">
-              Choose your activity
-            </h1>
+      <main className="flex items-center justify-center px-4 py-10">
+        <div className="bg-white text-gray-900 rounded-xl shadow-xl p-8 w-full max-w-md">
+          <h1 className="text-2xl font-bold mb-6 text-center">
+            What would you like to practice today?
+          </h1>
 
-            <div className="space-y-4">
-              {!!countForReview && (
-                <button 
+          <div className="space-y-4">
+            {!!countForReview && (
+              <button
                 onClick={() => navigate("/activity/review")}
-                className="w-full flex items-center gap-4 bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-lg transition">
-                  <RefreshCcw className="w-5 h-5 mt-1" />
-                  <div className="text-left leading-tight">
-                    <span className="block font-medium text-base">Review</span>
-                    <span className="block text-xs text-white/80">
-                      {countForReview} {cardsWord} for review
-                    </span>
-                  </div>
-                </button>
-              )}
+                className="w-full flex items-center gap-4 bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-lg transition transform active:scale-95 duration-150">
+                <RefreshCcw className="w-5 h-5 mt-1" />
+                <div className="text-left leading-tight">
+                  <span className="block font-medium text-base">Review</span>
+                  <span className="block text-xs text-white/80">
+                    {countForReview} {cardsWord} for review
+                  </span>
+                </div>
+              </button>
+            )}
 
-              <ButtonChooseActivityType
-                icon={BookOpen}
-                bgClass="bg-green-600 hover:bg-green-700"
-                name="Reading"
-                onClick={() => openModal("reading", "Reading")}
-              />
+            <ButtonChooseActivityType
+              icon={BookOpen}
+              bgClass="bg-green-600 hover:bg-green-700"
+              name="Reading"
+              onClick={() => openModal("reading", "Reading")}
+            />
 
-              <ButtonChooseActivityType
-                icon={Headphones}
-                bgClass="bg-blue-600 hover:bg-blue-700"
-                name="Listening"
-                onClick={() => openModal("listening", "Listening")}
-              />
+            <ButtonChooseActivityType
+              icon={Headphones}
+              bgClass="bg-blue-600 hover:bg-blue-700"
+              name="Listening"
+              onClick={() => openModal("listening", "Listening")}
+            />
 
-              <ButtonChooseActivityType
-                icon={PencilLine}
-                bgClass="bg-yellow-500 hover:bg-yellow-600"
-                name="Writing"
-                onClick={() => openModal("writing", "Writing")}
-              />
+            <ButtonChooseActivityType
+              icon={PencilLine}
+              bgClass="bg-yellow-500 hover:bg-yellow-600"
+              name="Writing"
+              onClick={() => openModal("writing", "Writing")}
+            />
 
-              <ButtonChooseActivityType
-                icon={Mic}
-                bgClass="bg-pink-600 hover:bg-pink-700"
-                name="Speaking"
-                onClick={() => openModal("speaking", "Speaking")}
-              />
-            </div>
+            <ButtonChooseActivityType
+              icon={Mic}
+              bgClass="bg-pink-600 hover:bg-pink-700"
+              name="Speaking"
+              onClick={() => openModal("speaking", "Speaking")}
+            />
           </div>
-        </main>
+        </div>
+      </main>
 
-        <ActivityOptionsModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          activityName={selectedActivity?.label}
-          options={selectedActivity ? ACTIVITY_OPTIONS[selectedActivity.key] : []}
-          onSelect={handleSelectOption}
-        />
+      <ActivityOptionsModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        activityName={selectedActivity?.label}
+        options={selectedActivity ? ACTIVITY_OPTIONS[selectedActivity.key] : []}
+        onSelect={handleSelectOption}
+      />
     </PageWrapper>
   );
 }
