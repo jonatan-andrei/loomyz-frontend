@@ -102,6 +102,8 @@ export default function CompletedActivity() {
                     repetitionCount: option.repetitionCount,
                     intervalInDays: option.intervalInDays,
                     easinessFactor: option.easinessFactor,
+                    userAnswer: userAnswer,
+                    llmAnswer: isError ? "ERROR" : isCorrect ? "CORRECT" : "INCORRECT"
                 };
                 saveFlashcard(user, activity.activityId, payload).catch((error) => {
                     console.error("Failed to update flashcard: ", error);
@@ -270,6 +272,7 @@ export default function CompletedActivity() {
                                     <div className="flex flex-col items-center gap-3">
                                         <input
                                             type="text"
+                                            maxlength="500"
                                             value={userAnswer}
                                             onChange={(e) => setUserAnswer(e.target.value)}
                                             placeholder={{
