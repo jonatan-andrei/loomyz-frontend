@@ -125,3 +125,22 @@ export async function validateActivity(user, activityId, payload) {
     return response.json();
 }
 
+export async function saveFeedback(user, payload) {
+    const idToken = await user.getIdToken();
+
+    const response = await fetch("http://localhost:8099/feedback", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error save Feedback: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+

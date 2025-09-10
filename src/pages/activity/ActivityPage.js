@@ -1,6 +1,6 @@
 import PageWrapper from "../../components/page-wrapper/PageWrapper";
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../../AuthContexts";
 import { useNavigate } from "react-router-dom";
 import { getActivities, saveFlashcard, skipFlashcard, validateActivity } from "../../services/httpService";
@@ -26,6 +26,10 @@ export default function CompletedActivity() {
     const [isRecording, setIsRecording] = useState(false);
     const [validateOnEnd, setValidateOnEnd] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioInstanceRef = useRef(null);
+    const onAudioPlay = useCallback(() => setIsPlaying(true), []);
+    const onAudioEnded = useCallback(() => setIsPlaying(false), []);
 
     useEffect(() => {
         const fetchActivities = async () => {
@@ -42,10 +46,52 @@ export default function CompletedActivity() {
         fetchActivities();
     }, [user, navigate, type]);
 
-    const playAudio = (text) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-US";
-        speechSynthesis.speak(utterance);
+    useEffect(() => {
+        const activity = activities[currentIndex];
+
+        if (audioInstanceRef.current) {
+            audioInstanceRef.current.pause();
+            audioInstanceRef.current.removeEventListener('play', onAudioPlay);
+            audioInstanceRef.current.removeEventListener('ended', onAudioEnded);
+            audioInstanceRef.current = null;
+        }
+
+        if (activity?.audioLink && ['READING', 'TRANSLATING_TEXT', 'LISTENING', 'TRANSLATING_AUDIO', 'TRANSCRIBING'].includes(activity.activityType)) {
+            const audio = new Audio(activity.audioLink);
+
+            const onAudioPlay = () => setIsPlaying(true);
+            const onAudioEnded = () => setIsPlaying(false);
+
+            audio.addEventListener('play', onAudioPlay);
+            audio.addEventListener('ended', onAudioEnded);
+            audio.addEventListener('pause', onAudioEnded);
+            audio.addEventListener('error', onAudioEnded);
+
+            audioInstanceRef.current = audio;
+
+            const timeoutId = setTimeout(() => {
+                audio.play().catch(error => {
+                    console.error("Error playing audio automatically:", error);
+                });
+            }, 200);
+
+            return () => {
+                clearTimeout(timeoutId);
+                audio.pause();
+            };
+        }
+    }, [activities, currentIndex]);
+
+    const playAudio = () => {
+        if (audioInstanceRef.current) {
+            if (isPlaying) {
+                audioInstanceRef.current.pause();
+            } else {
+                audioInstanceRef.current.play().catch(error => {
+                    console.error("Error playing audio:", error);
+                });
+            }
+        }
     };
 
     const handleReveal = () => {
@@ -250,10 +296,14 @@ export default function CompletedActivity() {
                                 {['READING', 'TRANSLATING_TEXT', 'LISTENING', 'TRANSLATING_AUDIO', 'TRANSCRIBING'].includes(activity.activityType) &&
                                     <button
                                         aria-label="Play audio"
-                                        onClick={() => playAudio(activity?.text)}
-                                        className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full transition"
+                                        onClick={playAudio}
+                                        className={`
+                                            p-2 rounded-full transition
+                                            ${isPlaying ? 'bg-green-500 animate-pulse' : 'bg-purple-600 hover:bg-purple-700'}
+                                            text-white
+                                        `}
                                     >
-                                        🔊
+                                        {isPlaying ? '⏹️' : '🔊'}
                                     </button>
                                 }
                             </div>
@@ -354,10 +404,14 @@ export default function CompletedActivity() {
                                                         &nbsp;
                                                         <button
                                                             aria-label="Play audio"
-                                                            onClick={() => playAudio(activity?.text)}
-                                                            className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full transition"
+                                                            onClick={playAudio}
+                                                            className={`
+                                                                p-2 rounded-full transition
+                                                                ${isPlaying ? 'bg-green-500 animate-pulse' : 'bg-purple-600 hover:bg-purple-700'}
+                                                              text-white
+                                        `}
                                                         >
-                                                            🔊
+                                                            {isPlaying ? '⏹️' : '🔊'}
                                                         </button>
                                                     </>
                                                 )}

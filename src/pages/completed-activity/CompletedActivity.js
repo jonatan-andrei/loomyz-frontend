@@ -3,15 +3,18 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContexts";
 import { useNavigate } from "react-router-dom";
-import { countFlashcardsViewedToday, getReviewCount } from "../../services/httpService";
+import { countFlashcardsViewedToday, getReviewCount, saveFeedback } from "../../services/httpService";
 import Confetti from '../../components/confetti/Confetti';
-
+import toast, { Toaster } from "react-hot-toast";
 
 export default function CompletedActivity() {
     const { type } = useParams();
     const [quantityLearned, setQuantityLearned] = useState(0);
     const [quantityReviewed, setQuantityReviewed] = useState(0);
     const [countForReview, setCountForReview] = useState(0);
+    const [sendingFeedback, setSendingFeedback] = useState(false);
+    const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+    const [feedbackText, setFeedbackText] = useState("");
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -39,6 +42,25 @@ export default function CompletedActivity() {
         };
         fetchCountForReview();
     }, [user, navigate]);
+
+    const sendFeedback = async () => {
+        if (!feedbackText.trim()) {
+            toast.error("Feedback cannot be empty.");
+            return;
+        }
+        setSendingFeedback(true);
+        try {
+            await saveFeedback(user, { text: feedbackText });
+            toast.success("Thanks for your feedback!");
+            setFeedbackText("");
+            setFeedbackModalOpen(false);
+        } catch (error) {
+            console.error("Failed to send feedback: ", error);
+            toast.error("Failed to send feedback.");
+        } finally {
+            setSendingFeedback(false);
+        }
+    }
 
     return (
         <PageWrapper>
@@ -89,9 +111,47 @@ export default function CompletedActivity() {
                                 Choose another activity
                             </button>
                         )}
+
+                        <button
+                            onClick={() => setFeedbackModalOpen(true)}
+                            className="w-full inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 text-white px-4 py-3 rounded-lg font-semibold transition"
+                            aria-label="Send Feedback">
+                            Send Feedback
+                        </button>
                     </div>
                 </div>
             </main>
+            
+            {feedbackModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+                        <h2 className="text-xl font-bold mb-4">Your Feedback</h2>
+                        <textarea
+                            value={feedbackText}
+                            onChange={(e) => setFeedbackText(e.target.value)}
+                            className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-400 bg-white text-gray-900"
+                            rows={4}
+                            placeholder="Type your feedback here..."
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setFeedbackModalOpen(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                                disabled={sendingFeedback}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={sendFeedback}
+                                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                                disabled={sendingFeedback}
+                            >
+                                {sendingFeedback ? "Sending..." : "Send"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </PageWrapper>
     );
 }
