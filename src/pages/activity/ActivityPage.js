@@ -56,7 +56,22 @@ export default function CompletedActivity() {
             audioInstanceRef.current = null;
         }
 
-        if (activity?.audioLink && ['READING', 'TRANSLATING_TEXT', 'LISTENING', 'TRANSLATING_AUDIO', 'TRANSCRIBING'].includes(activity.activityType)) {
+        const autoPlayTypes = [
+            'READING',
+            'TRANSLATING_TEXT',
+            'LISTENING',
+            'TRANSLATING_AUDIO',
+            'TRANSCRIBING'
+        ];
+
+        const delayedAudioTypes = ['PRONUNCIATION', 'SPEAKING'];
+
+        const shouldLoadAudio =
+            activity?.audioLink &&
+            (autoPlayTypes.includes(activity.activityType) ||
+                (delayedAudioTypes.includes(activity.activityType) && showAnswer));
+
+        if (shouldLoadAudio) {
             const audio = new Audio(activity.audioLink);
 
             const onAudioPlay = () => setIsPlaying(true);
@@ -69,18 +84,16 @@ export default function CompletedActivity() {
 
             audioInstanceRef.current = audio;
 
-            const timeoutId = setTimeout(() => {
-                audio.play().catch(error => {
-                    console.error("Error playing audio automatically:", error);
-                });
-            }, 200);
-
-            return () => {
-                clearTimeout(timeoutId);
-                audio.pause();
-            };
+            if (autoPlayTypes.includes(activity.activityType)) {
+                const timeoutId = setTimeout(() => {
+                    audio.play().catch(error => {
+                        console.error("Error playing audio automatically:", error);
+                    });
+                }, 200);
+                return () => clearTimeout(timeoutId);
+            }
         }
-    }, [activities, currentIndex]);
+    }, [activities, currentIndex, showAnswer]);
 
     const playAudio = () => {
         if (audioInstanceRef.current) {
