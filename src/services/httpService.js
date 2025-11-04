@@ -1,7 +1,10 @@
+// const apiUrl = "http://localhost:8099"
+const apiUrl = "/api"
+
 export async function updateUser(user, payload) {
     const idToken = await user.getIdToken();
 
-    const response = await fetch("http://localhost:8099/user", {
+    const response = await fetch(apiUrl + "/user", {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -18,7 +21,7 @@ export async function updateUser(user, payload) {
 }
 
 export async function getNativeLanguages() {
-    const response = await fetch("http://localhost:8099/native-language/1");
+    const response = await fetch(apiUrl + "/native-language/1");
     if (!response.ok) {
         throw new Error("Failed to load native languages");
     }
@@ -27,7 +30,7 @@ export async function getNativeLanguages() {
 
 export async function verifyExistsPendingRegistration(user) {
     const idToken = await user.getIdToken();
-    const response = await fetch("http://localhost:8099/user/exists-pending-registration", {
+    const response = await fetch(apiUrl + "/user/exists-pending-registration", {
         method: "GET",
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -38,7 +41,7 @@ export async function verifyExistsPendingRegistration(user) {
 
 export async function getReviewCount(user) {
     const idToken = await user.getIdToken();
-    const response = await fetch("http://localhost:8099/activity/count-for-review", {
+    const response = await fetch(apiUrl + "/activity/count-for-review", {
         method: "GET",
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -49,7 +52,7 @@ export async function getReviewCount(user) {
 
 export async function countFlashcardsViewedToday(user) {
     const idToken = await user.getIdToken();
-    const response = await fetch("http://localhost:8099/activity/count-viewed-today", {
+    const response = await fetch(apiUrl + "/activity/count-viewed-today", {
         method: "GET",
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -60,7 +63,7 @@ export async function countFlashcardsViewedToday(user) {
 
 export async function getActivities(user, activityType) {
     const idToken = await user.getIdToken();
-    const response = await fetch("http://localhost:8099/activity/" + activityType, {
+    const response = await fetch(apiUrl + "/activity/" + activityType, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -72,7 +75,7 @@ export async function getActivities(user, activityType) {
 export async function saveFlashcard(user, activityId, payload) {
     const idToken = await user.getIdToken();
 
-    const response = await fetch("http://localhost:8099/activity/save-flashcard/" + activityId, {
+    const response = await fetch(apiUrl + "/activity/save-flashcard/" + activityId, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -91,7 +94,7 @@ export async function saveFlashcard(user, activityId, payload) {
 export async function skipFlashcard(user, activityId) {
     const idToken = await user.getIdToken();
 
-    const response = await fetch("http://localhost:8099/activity/skip-flashcard/" + activityId, {
+    const response = await fetch(apiUrl + "/activity/skip-flashcard/" + activityId, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -109,7 +112,7 @@ export async function skipFlashcard(user, activityId) {
 export async function validateActivity(user, activityId, payload) {
     const idToken = await user.getIdToken();
 
-    const response = await fetch("http://localhost:8099/activity/validate/" + activityId, {
+    const response = await fetch(apiUrl + "/activity/validate/" + activityId, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -128,7 +131,7 @@ export async function validateActivity(user, activityId, payload) {
 export async function saveFeedback(user, payload) {
     const idToken = await user.getIdToken();
 
-    const response = await fetch("http://localhost:8099/feedback", {
+    const response = await fetch(apiUrl + "/feedback", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
