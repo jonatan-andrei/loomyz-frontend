@@ -53,8 +53,8 @@ export default function CompletedActivity() {
         }
         setSendingFeedback(true);
         try {
-            await saveFeedback(user, { 
-                text: feedbackText, 
+            await saveFeedback(user, {
+                text: feedbackText,
                 liked: liked
             });
             toast.success("Thanks for your feedback!");
@@ -132,8 +132,8 @@ export default function CompletedActivity() {
             </main>
 
             {feedbackModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4 transition-opacity duration-300 ease-out">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl transform transition-all duration-300 ease-out scale-100 opacity-100">
                         <h2 className="text-xl font-bold mb-4">Your Feedback</h2>
 
                         <div className="flex justify-center gap-6 mb-4">

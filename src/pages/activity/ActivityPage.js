@@ -184,10 +184,12 @@ export default function CompletedActivity() {
                 return;
             }
 
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
             const recognitionInstance = new SpeechRecognition();
             recognitionInstance.lang = "en-US";
             recognitionInstance.continuous = true;
-            recognitionInstance.interimResults = true;
+            recognitionInstance.interimResults = !isMobile;
             recognitionInstance.maxAlternatives = 1;
 
             setRecognition(recognitionInstance);
@@ -196,15 +198,16 @@ export default function CompletedActivity() {
             setIsError(false);
 
             let finalTranscript = '';
+            let lastProcessedIndex = 0;
 
             recognitionInstance.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    const transcript = event.results[i][0].transcript;
+                for (let i = lastProcessedIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
+                        const transcript = event.results[i][0].transcript.trim();
+                        if (transcript) {
+                            finalTranscript += (finalTranscript ? ' ' : '') + transcript;
+                        }
+                        lastProcessedIndex = i + 1;
                     }
                 }
             };
@@ -259,17 +262,6 @@ export default function CompletedActivity() {
             }
         }
     }, [isError, userAnswer, validateOnEnd, activity, handleValidateText]);
-
-    useEffect(() => {
-        return () => {
-            if (audioInstanceRef.current) {
-                audioInstanceRef.current.pause();
-                audioInstanceRef.current.removeEventListener('play', onAudioPlay);
-                audioInstanceRef.current.removeEventListener('ended', onAudioEnded);
-                audioInstanceRef.current = null;
-            }
-        };
-    }, []);
 
     if (loading || !activities) {
         return <LoadingPage />;
@@ -346,7 +338,7 @@ export default function CompletedActivity() {
                                     <div className="flex flex-col items-center gap-3">
                                         <input
                                             type="text"
-                                            maxlength="500"
+                                            maxLength="500"
                                             value={userAnswer}
                                             onChange={(e) => setUserAnswer(e.target.value)}
                                             placeholder={{
