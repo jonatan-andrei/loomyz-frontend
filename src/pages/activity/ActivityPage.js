@@ -84,7 +84,7 @@ export default function CompletedActivity() {
 
             audioInstanceRef.current = audio;
 
-            if (autoPlayTypes.includes(activity.activityType)) {
+            if (autoPlayTypes.includes(activity.activityType) && !showAnswer) {
                 const timeoutId = setTimeout(() => {
                     audio.play().catch(error => {
                         console.error("Error playing audio automatically:", error);
@@ -259,6 +259,17 @@ export default function CompletedActivity() {
             }
         }
     }, [isError, userAnswer, validateOnEnd, activity, handleValidateText]);
+
+    useEffect(() => {
+        return () => {
+            if (audioInstanceRef.current) {
+                audioInstanceRef.current.pause();
+                audioInstanceRef.current.removeEventListener('play', onAudioPlay);
+                audioInstanceRef.current.removeEventListener('ended', onAudioEnded);
+                audioInstanceRef.current = null;
+            }
+        };
+    }, []);
 
     if (loading || !activities) {
         return <LoadingPage />;
