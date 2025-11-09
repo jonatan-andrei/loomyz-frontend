@@ -1,4 +1,4 @@
-// const apiUrl = "http://localhost:8099"
+//const apiUrl = "http://localhost:8099"
 const apiUrl = "/api"
 
 export async function updateUser(user, payload) {
@@ -50,9 +50,9 @@ export async function getReviewCount(user) {
     return response.json();
 }
 
-export async function countFlashcardsViewedToday(user) {
+export async function countFlashcardsViewedToday(user, userDate) {
     const idToken = await user.getIdToken();
-    const response = await fetch(apiUrl + "/activity/count-viewed-today", {
+    const response = await fetch(apiUrl + "/activity/count-viewed-today/" + userDate, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${idToken}`,

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContexts";
 import { useNavigate } from "react-router-dom";
 import { countFlashcardsViewedToday, getReviewCount, saveFeedback } from "../../services/httpService";
+import { formatDateToString } from "../../services/DateFormatService";
 import Confetti from '../../components/confetti/Confetti';
 import toast from "react-hot-toast";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
@@ -24,7 +25,7 @@ export default function CompletedActivity() {
     useEffect(() => {
         const fetchActiviesViewed = async () => {
             try {
-                const activitiesViewedResponseDto = await countFlashcardsViewedToday(user);
+                const activitiesViewedResponseDto = await countFlashcardsViewedToday(user, formatDateToString(new Date()));
                 setQuantityLearned(activitiesViewedResponseDto.learned);
                 setQuantityReviewed(activitiesViewedResponseDto.reviewed);
             } catch (error) {

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../../AuthContexts";
 import { useNavigate } from "react-router-dom";
 import { getActivities, saveFlashcard, skipFlashcard, validateActivity } from "../../services/httpService";
+import { formatDateToString } from "../../services/DateFormatService";
 import LoadingPage from "../../components/loading-page/LoadingPage";
 import { toast } from "react-hot-toast";
 import { Mic, Square } from 'lucide-react';
@@ -145,6 +146,11 @@ export default function CompletedActivity() {
     };
 
     const handleNext = (activity, option, isRetry) => {
+        if (audioInstanceRef.current) {
+            audioInstanceRef.current.pause();
+            audioInstanceRef.current.currentTime = 0;
+            setIsPlaying(false);
+        }
         if (!isRetry) {
             if (currentIndex < activities.length - 1) {
                 setCurrentIndex((prev) => prev + 1);
@@ -162,7 +168,8 @@ export default function CompletedActivity() {
                     intervalInDays: option.intervalInDays,
                     easinessFactor: option.easinessFactor,
                     userAnswer: userAnswer,
-                    llmAnswer: isError ? "ERROR" : isCorrect ? "CORRECT" : "INCORRECT"
+                    llmAnswer: isError ? "ERROR" : isCorrect ? "CORRECT" : "INCORRECT",
+                    userReviewDate: formatDateToString(new Date())
                 };
                 saveFlashcard(user, activity.activityId, payload).catch((error) => {
                     console.error("Failed to update flashcard: ", error);
@@ -262,6 +269,22 @@ export default function CompletedActivity() {
             }
         }
     }, [isError, userAnswer, validateOnEnd, activity, handleValidateText]);
+
+    useEffect(() => {
+        return () => {
+            if (audioInstanceRef.current) {
+                audioInstanceRef.current.pause();
+                audioInstanceRef.current.removeEventListener('play', onAudioPlay);
+                audioInstanceRef.current.removeEventListener('ended', onAudioEnded);
+                audioInstanceRef.current.removeEventListener('pause', onAudioEnded);
+                audioInstanceRef.current.removeEventListener('error', onAudioEnded);
+                audioInstanceRef.current.currentTime = 0;
+                audioInstanceRef.current.src = '';
+                audioInstanceRef.current = null;
+            }
+            setIsPlaying(false);
+        };
+    }, [onAudioPlay, onAudioEnded]);
 
     if (loading || !activities) {
         return <LoadingPage />;
