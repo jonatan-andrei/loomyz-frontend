@@ -30,6 +30,7 @@ export default function CompletedActivity() {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioInstanceRef = useRef(null);
     const transcriptRef = useRef('');
+    const isStoppedManuallyRef = useRef(false);
     const onAudioPlay = useCallback(() => setIsPlaying(true), []);
     const onAudioEnded = useCallback(() => setIsPlaying(false), []);
 
@@ -192,7 +193,7 @@ export default function CompletedActivity() {
                 return;
             }
 
-        const recognitionInstance = new SpeechRecognition();
+            const recognitionInstance = new SpeechRecognition();
             recognitionInstance.lang = "en-US";
             recognitionInstance.continuous = true;
             recognitionInstance.interimResults = false;
@@ -203,6 +204,7 @@ export default function CompletedActivity() {
             setUserAnswer('');
             setIsError(false);
             transcriptRef.current = '';
+            isStoppedManuallyRef.current = false;
 
             recognitionInstance.onresult = (event) => {
                 const lastResultIndex = event.results.length - 1;
@@ -220,15 +222,25 @@ export default function CompletedActivity() {
             };
 
             recognitionInstance.onend = () => {
-                setIsRecording(false);
-                setValidating(true);
-                setUserAnswer(transcriptRef.current.trim());
-                setValidateOnEnd(true);
+                if (!isStoppedManuallyRef.current && isRecording) {
+                    try {
+                        recognitionInstance.start();
+                    } catch (err) {
+                        console.error("Error restarting recognition:", err);
+                    }
+                } else {
+                    setIsRecording(false);
+                    setValidating(true);
+                    setUserAnswer(transcriptRef.current.trim());
+                    setValidateOnEnd(true);
+                }
             };
 
             recognitionInstance.onerror = (err) => {
                 if (err?.error === "not-allowed") {
                     toast.error("We need access to your microphone to start this activity. Please allow microphone permissions in your browser settings and try again.");
+                } else if (err?.error === "aborted") {
+                    return;
                 } else {
                     toast.error("We couldn't detect your voice. Please try again.");
                 }
@@ -251,6 +263,7 @@ export default function CompletedActivity() {
 
     const stopSpeechRecognition = () => {
         if (recognition) {
+            isStoppedManuallyRef.current = true;
             recognition.stop();
         }
     };
