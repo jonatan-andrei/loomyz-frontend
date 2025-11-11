@@ -31,6 +31,7 @@ export default function CompletedActivity() {
     const audioInstanceRef = useRef(null);
     const transcriptRef = useRef('');
     const isStoppedManuallyRef = useRef(false);
+    const lastFinalIndexRef = useRef(-1);
     const onAudioPlay = useCallback(() => setIsPlaying(true), []);
     const onAudioEnded = useCallback(() => setIsPlaying(false), []);
 
@@ -196,7 +197,7 @@ export default function CompletedActivity() {
             const recognitionInstance = new SpeechRecognition();
             recognitionInstance.lang = "en-US";
             recognitionInstance.continuous = true;
-            recognitionInstance.interimResults = false;
+            recognitionInstance.interimResults = true;
             recognitionInstance.maxAlternatives = 1;
 
             setRecognition(recognitionInstance);
@@ -205,24 +206,25 @@ export default function CompletedActivity() {
             setIsError(false);
             transcriptRef.current = '';
             isStoppedManuallyRef.current = false;
+            lastFinalIndexRef.current = -1;
 
             recognitionInstance.onresult = (event) => {
-                const lastResultIndex = event.results.length - 1;
-                const lastResult = event.results[lastResultIndex];
+                let finalTranscript = '';
                 
-                if (lastResult.isFinal) {
-                    const newTranscript = lastResult[0].transcript.trim();
-                    
-                    if (transcriptRef.current) {
-                        transcriptRef.current += ' ' + newTranscript;
-                    } else {
-                        transcriptRef.current = newTranscript;
+                for (let i = lastFinalIndexRef.current + 1; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                        lastFinalIndexRef.current = i;
                     }
+                }
+                
+                if (finalTranscript.trim()) {
+                    transcriptRef.current = (transcriptRef.current + ' ' + finalTranscript).trim();
                 }
             };
 
             recognitionInstance.onend = () => {
-                if (!isStoppedManuallyRef.current && isRecording) {
+                if (!isStoppedManuallyRef.current) {
                     try {
                         recognitionInstance.start();
                     } catch (err) {
@@ -239,15 +241,20 @@ export default function CompletedActivity() {
             recognitionInstance.onerror = (err) => {
                 if (err?.error === "not-allowed") {
                     toast.error("We need access to your microphone to start this activity. Please allow microphone permissions in your browser settings and try again.");
+                    setIsRecording(false);
+                    setValidating(false);
+                    setIsError(true);
                 } else if (err?.error === "aborted") {
+                    return;
+                } else if (err?.error === "no-speech") {
                     return;
                 } else {
                     toast.error("We couldn't detect your voice. Please try again.");
+                    console.error("Speech recognition error: ", err);
+                    setIsRecording(false);
+                    setValidating(false);
+                    setIsError(true);
                 }
-                console.error("Speech recognition error: ", err);
-                setIsRecording(false);
-                setValidating(false);
-                setIsError(true);
             };
 
             recognitionInstance.start();
