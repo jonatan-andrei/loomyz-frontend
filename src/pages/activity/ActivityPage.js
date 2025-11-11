@@ -29,6 +29,7 @@ export default function CompletedActivity() {
     const [isCompleted, setIsCompleted] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioInstanceRef = useRef(null);
+    const transcriptRef = useRef('');
     const onAudioPlay = useCallback(() => setIsPlaying(true), []);
     const onAudioEnded = useCallback(() => setIsPlaying(false), []);
 
@@ -191,28 +192,29 @@ export default function CompletedActivity() {
                 return;
             }
 
-            const recognitionInstance = new SpeechRecognition();
+        const recognitionInstance = new SpeechRecognition();
             recognitionInstance.lang = "en-US";
             recognitionInstance.continuous = true;
-            recognitionInstance.interimResults = true;
+            recognitionInstance.interimResults = false;
             recognitionInstance.maxAlternatives = 1;
 
             setRecognition(recognitionInstance);
             setIsRecording(true);
             setUserAnswer('');
             setIsError(false);
-
-            let allTranscripts = [];
+            transcriptRef.current = '';
 
             recognitionInstance.onresult = (event) => {
-
-                const lastResult = event.results[event.results.length - 1];
-
+                const lastResultIndex = event.results.length - 1;
+                const lastResult = event.results[lastResultIndex];
+                
                 if (lastResult.isFinal) {
-                    const transcript = lastResult[0].transcript.trim();
-
-                    if (transcript && !allTranscripts.includes(transcript)) {
-                        allTranscripts.push(transcript);
+                    const newTranscript = lastResult[0].transcript.trim();
+                    
+                    if (transcriptRef.current) {
+                        transcriptRef.current += ' ' + newTranscript;
+                    } else {
+                        transcriptRef.current = newTranscript;
                     }
                 }
             };
@@ -220,8 +222,7 @@ export default function CompletedActivity() {
             recognitionInstance.onend = () => {
                 setIsRecording(false);
                 setValidating(true);
-                const finalText = allTranscripts.join(' ').trim();
-                setUserAnswer(finalText);
+                setUserAnswer(transcriptRef.current.trim());
                 setValidateOnEnd(true);
             };
 
