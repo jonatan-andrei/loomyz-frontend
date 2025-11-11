@@ -201,15 +201,18 @@ export default function CompletedActivity() {
             setIsRecording(true);
             setUserAnswer('');
             setIsError(false);
-            
-            let finalTranscript = '';
-            let lastProcessedIndex = -1;
+
+            let allTranscripts = [];
 
             recognitionInstance.onresult = (event) => {
-                for (let i = 0; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal && i > lastProcessedIndex) {
-                        finalTranscript += event.results[i][0].transcript + ' ';
-                        lastProcessedIndex = i;
+
+                const lastResult = event.results[event.results.length - 1];
+
+                if (lastResult.isFinal) {
+                    const transcript = lastResult[0].transcript.trim();
+
+                    if (transcript && !allTranscripts.includes(transcript)) {
+                        allTranscripts.push(transcript);
                     }
                 }
             };
@@ -217,7 +220,8 @@ export default function CompletedActivity() {
             recognitionInstance.onend = () => {
                 setIsRecording(false);
                 setValidating(true);
-                setUserAnswer(finalTranscript.trim());
+                const finalText = allTranscripts.join(' ').trim();
+                setUserAnswer(finalText);
                 setValidateOnEnd(true);
             };
 
