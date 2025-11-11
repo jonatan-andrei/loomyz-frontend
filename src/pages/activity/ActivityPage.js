@@ -191,30 +191,25 @@ export default function CompletedActivity() {
                 return;
             }
 
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
             const recognitionInstance = new SpeechRecognition();
             recognitionInstance.lang = "en-US";
             recognitionInstance.continuous = true;
-            recognitionInstance.interimResults = !isMobile;
+            recognitionInstance.interimResults = true;
             recognitionInstance.maxAlternatives = 1;
 
             setRecognition(recognitionInstance);
             setIsRecording(true);
             setUserAnswer('');
             setIsError(false);
-
+            
             let finalTranscript = '';
-            let lastProcessedIndex = 0;
+            let lastProcessedIndex = -1;
 
             recognitionInstance.onresult = (event) => {
-                for (let i = lastProcessedIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        const transcript = event.results[i][0].transcript.trim();
-                        if (transcript) {
-                            finalTranscript += (finalTranscript ? ' ' : '') + transcript;
-                        }
-                        lastProcessedIndex = i + 1;
+                for (let i = 0; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal && i > lastProcessedIndex) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                        lastProcessedIndex = i;
                     }
                 }
             };
