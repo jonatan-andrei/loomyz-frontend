@@ -182,78 +182,7 @@ export default function CompletedActivity() {
         setIsError(false);
     };
 
-    const startSpeechRecognition = () => {
-        try {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-                toast.error("Speech recognition not supported in this browser. For best results, please use Google Chrome.");
-                return;
-            }
-
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            const recognitionInstance = new SpeechRecognition();
-            recognitionInstance.lang = "en-US";
-            recognitionInstance.continuous = true;
-            recognitionInstance.interimResults = !isMobile;
-            recognitionInstance.maxAlternatives = 1;
-
-            setRecognition(recognitionInstance);
-            setIsRecording(true);
-            setUserAnswer('');
-            setIsError(false);
-
-            let finalTranscript = '';
-            let lastProcessedIndex = 0;
-
-            recognitionInstance.onresult = (event) => {
-                for (let i = lastProcessedIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        const transcript = event.results[i][0].transcript.trim();
-                        if (transcript) {
-                            finalTranscript += (finalTranscript ? ' ' : '') + transcript;
-                        }
-                        lastProcessedIndex = i + 1;
-                    }
-                }
-            };
-
-            recognitionInstance.onend = () => {
-                setIsRecording(false);
-                setValidating(true);
-                setUserAnswer(finalTranscript.trim());
-                setValidateOnEnd(true);
-            };
-
-            recognitionInstance.onerror = (err) => {
-                if (err?.error === "not-allowed") {
-                    toast.error("We need access to your microphone to start this activity. Please allow microphone permissions in your browser settings and try again.");
-                } else {
-                    toast.error("We couldn't detect your voice. Please try again.");
-                }
-                console.error("Speech recognition error: ", err);
-                setIsRecording(false);
-                setValidating(false);
-                setIsError(true);
-            };
-
-            recognitionInstance.start();
-
-        } catch (err) {
-            console.error(err);
-            toast.error("Something went wrong with the speech recognition. For best results, please use Google Chrome.");
-            setIsRecording(false);
-            setValidating(false);
-            setIsError(true);
-        }
-    };
-
-    const stopSpeechRecognition = () => {
-        if (recognition) {
-            recognition.stop();
-        }
-    };
+    const startSpeechRecognition = () => { try { const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SpeechRecognition) { toast.error("Speech recognition not supported in this browser. For best results, please use Google Chrome."); return; } const recognitionInstance = new SpeechRecognition(); recognitionInstance.lang = "en-US"; recognitionInstance.continuous = true; recognitionInstance.interimResults = true; recognitionInstance.maxAlternatives = 1; setRecognition(recognitionInstance); setIsRecording(true); setUserAnswer(''); setIsError(false); setValidateOnEnd(false); let finalTranscript = ''; let interimTranscript = ''; recognitionInstance.onresult = (event) => { interimTranscript = ''; for (let i = event.resultIndex; i < event.results.length; ++i) { const transcript = event.results[i][0].transcript; if (event.results[i].isFinal) { finalTranscript += transcript + ' '; } else { interimTranscript += transcript; } } setUserAnswer((finalTranscript + interimTranscript).trim()); }; recognitionInstance.onend = () => { }; recognitionInstance.onerror = (err) => { if (err?.error === "not-allowed") { toast.error("We need access to your microphone to start this activity. Please allow microphone permissions in your browser settings and try again."); } else { toast.error("We couldn't detect your voice. Please try again."); } console.error("Speech recognition error: ", err); setIsRecording(false); setValidating(false); setIsError(true); }; recognitionInstance.start(); } catch (err) { console.error(err); toast.error("Something went wrong with the speech recognition. For best results, please use Google Chrome."); setIsRecording(false); setValidating(false); setIsError(true); } }; const stopSpeechRecognition = () => { if (recognition) { recognition.stop(); setIsRecording(false); setValidating(true); setValidateOnEnd(true); } };
 
     const activity = activities[currentIndex];
 
