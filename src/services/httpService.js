@@ -1,5 +1,5 @@
-//const apiUrl = "http://localhost:8099"
-const apiUrl = "/api"
+const apiUrl = "http://localhost:8099"
+//const apiUrl = "/api"
 
 export async function updateUser(user, payload) {
     const idToken = await user.getIdToken();
